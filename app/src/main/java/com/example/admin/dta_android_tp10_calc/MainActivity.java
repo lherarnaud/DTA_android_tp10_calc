@@ -11,6 +11,7 @@ import java.util.Stack;
 
 public class MainActivity extends Tracer implements View.OnClickListener {
 
+    private CalculatorStack rpnCalculator;
 
     int[] buttons =  new int[] {
             R.id.ctl_btn_backspace,
@@ -32,30 +33,28 @@ public class MainActivity extends Tracer implements View.OnClickListener {
             R.id.ctl_btn_enter
     };
 
+    ArrayList<TextView> ctl_stackView;
     private Stack<String> stackHiddenValues;
-    ArrayList<TextView> stackView;
-
     private TextView ctl_txt_currentValue;
-    Stack<TextView> ctl_stackTextView;
 
-
-    private CalculatorStack calcStack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        calcStack = new CalculatorStack();
         ctl_txt_currentValue = (TextView) findViewById(R.id.ctl_txt_currentValue);
 
-        stackView = new ArrayList<TextView>();
-        stackView.add((TextView) findViewById(R.id.ctl_txt_stack1));
-        stackView.add((TextView) findViewById(R.id.ctl_txt_stack2));
-        stackView.add((TextView) findViewById(R.id.ctl_txt_stack3));
-        stackView.add((TextView) findViewById(R.id.ctl_txt_stack4));
+        // Init calculator and current value
+        rpnCalculator = new CalculatorStack();
 
-        stackHiddenValues = new Stack<String>();
+        // Store stack textviews in a array for updating values
+        ctl_stackView = new ArrayList<>();
+        ctl_stackView.add((TextView) findViewById(R.id.ctl_txt_stack1));
+        ctl_stackView.add((TextView) findViewById(R.id.ctl_txt_stack2));
+        ctl_stackView.add((TextView) findViewById(R.id.ctl_txt_stack3));
+        ctl_stackView.add((TextView) findViewById(R.id.ctl_txt_stack4));
+        stackHiddenValues = new Stack<>();
 
         // Attach main listener to buttons
         for (int buttonId : buttons)
@@ -114,7 +113,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
             case R.id.ctl_btn_plus:
                 Log.d("Click action math", "PLUS");
                 try {
-                    String result = calcStack.plus();
+                    String result = rpnCalculator.plus();
                     popValueOnStackView();
                     popValueOnStackView();
                     pushValueOnStackView(result);
@@ -128,7 +127,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
             case R.id.ctl_btn_minus:
                 Log.d("Click action math", "MINUS");
                 try {
-                    String result = calcStack.minus();
+                    String result = rpnCalculator.minus();
                     popValueOnStackView();
                     popValueOnStackView();
                     pushValueOnStackView(result);
@@ -145,7 +144,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
 
             case R.id.ctl_btn_clear:
                 Log.d("Click action stack", "CLEAR");
-                calcStack.clear();
+                rpnCalculator.clear();
                 clearOnStackView();
                 break;
 
@@ -161,7 +160,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
             case R.id.ctl_btn_swap:
                 Log.d("Click action stack", "SWAP");
                 try {
-                    ArrayList<Integer> values = calcStack.swap();
+                    ArrayList<Integer> values = rpnCalculator.swap();
                     popValueOnStackView();
                     popValueOnStackView();
                     pushValueOnStackView(String.valueOf(values.get(0)));
@@ -191,50 +190,49 @@ public class MainActivity extends Tracer implements View.OnClickListener {
     //--- REGION STACK OPERATIONS
 
     private Integer popValue() throws Exception {
-        Integer value = calcStack.pop();
+        Integer value = rpnCalculator.pop();
         popValueOnStackView();
         return value;
     }
 
     private void pushValue(Integer newValue) {
-        calcStack.push(newValue);
+        rpnCalculator.push(newValue);
         pushValueOnStackView(String.valueOf(newValue));
     }
 
     //--- REGION STACK VIEW
 
     private void pushValueOnStackView(String newValue) {
-        TextView olderItem = null, newerItem = null;
+        TextView olderItem, newerItem = null;
 
-        olderItem = (TextView)stackView.get(stackView.size()-1);
+        olderItem = ctl_stackView.get(ctl_stackView.size()-1);
         stackHiddenValues.push(olderItem.getText().toString());
-        //stackHiddenValue = olderItem.getText().toString();
 
-        for(int i = stackView.size()-2; i >= 0; i--)
+        for(int i = ctl_stackView.size()-2; i >= 0; i--)
         {
-            newerItem = (TextView) stackView.get(i);
+            newerItem = ctl_stackView.get(i);
             Log.d("copy '", newerItem.getText()+"' in object #'"+ olderItem.getId()+"'");
             olderItem.setText(newerItem.getText());
             olderItem = newerItem;
         }
-        Log.d("copy '", newValue +"' to "+ newerItem.getId());
+        Log.d("copy '", newValue +"' to newest item");
         newerItem.setText(newValue);
     }
 
     private void popValueOnStackView() {
-        TextView olderItem = null, newerItem = null;
+        TextView olderItem = null, newerItem;
 
-        newerItem = (TextView)stackView.get(0);
-        for(int i = 1; i < stackView.size(); i++)
+        newerItem = ctl_stackView.get(0);
+        for(int i = 1; i < ctl_stackView.size(); i++)
         {
-            olderItem = (TextView) stackView.get(i);
-            Log.d("copy '", olderItem.getText()+"' in object #'"+ newerItem.getText()+"'");
+            olderItem = ctl_stackView.get(i);
+            Log.d("copy '", olderItem.getText()+"' in object #'"+ newerItem.getId()+"'");
             newerItem.setText(olderItem.getText());
             newerItem = olderItem;
         }
 
         String stackHiddenValue = (stackHiddenValues.isEmpty()) ? "" : stackHiddenValues.pop();
-        Log.d("copy '", stackHiddenValue +"' txo "+ olderItem.getText());
+        Log.d("copy '", stackHiddenValue +"' to oldest item");
         olderItem.setText(stackHiddenValue);
     }
 
@@ -242,9 +240,9 @@ public class MainActivity extends Tracer implements View.OnClickListener {
         TextView textItem;
 
         stackHiddenValues.clear();
-        for(int i = 0; i < stackView.size(); i++)
+        for(int i = 0; i < ctl_stackView.size(); i++)
         {
-            textItem = (TextView) stackView.get(i);
+            textItem = ctl_stackView.get(i);
             textItem.setText("");
         }
     }
@@ -255,7 +253,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
     private void writeDigit(int digit) {
         Log.d("Write digit", String.valueOf(digit));
         String newValue = getCurrentValue();
-        if(newValue == "0")
+        if(newValue.equals("0"))
             newValue = ""+digit;
         else
             newValue += digit;
