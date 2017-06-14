@@ -13,6 +13,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
 
 
     int[] buttons =  new int[] {
+            R.id.ctl_btn_backspace,
             R.id.ctl_btn_1, 
             R.id.ctl_btn_2,
             R.id.ctl_btn_3,
@@ -66,26 +67,6 @@ public class MainActivity extends Tracer implements View.OnClickListener {
 
     }
 
-    private void writeDigit(int digit) {
-        Log.d("Write digit", String.valueOf(digit));
-        String newValue = getCurrentValue() + digit;
-        try {
-            int result = Integer.parseInt(newValue);
-            setCurrentValue(newValue);
-        } catch (NumberFormatException e) {
-            notify("Not a valid number !");
-        }
-    }
-
-
-
-    private String getCurrentValue() {
-        return ctl_txt_currentValue.getText().toString();
-    }
-
-    private void setCurrentValue(String newValue) {
-        ctl_txt_currentValue.setText(newValue);
-    }
 
 
 
@@ -130,6 +111,10 @@ public class MainActivity extends Tracer implements View.OnClickListener {
                 writeDigit(9);
                 break;
 
+            case R.id.ctl_btn_backspace:
+                removeDigit();
+                break;
+
             case R.id.ctl_btn_plus:
                 Log.d("Click action math", "PLUS");
                 try {
@@ -146,6 +131,16 @@ public class MainActivity extends Tracer implements View.OnClickListener {
 
             case R.id.ctl_btn_minus:
                 Log.d("Click action math", "MINUS");
+                try {
+                    String result = calcStack.minus();
+                    popValueOnStackView();
+                    popValueOnStackView();
+                    pushValueOnStackView(result);
+                    setCurrentValue("");
+                }
+                catch(Exception ex) {
+                    notify(ex.getMessage());
+                }
                 break;
 
             case R.id.ctl_btn_divide:
@@ -158,12 +153,20 @@ public class MainActivity extends Tracer implements View.OnClickListener {
 
             case R.id.ctl_btn_pop:
                 Log.d("Click action stack", "POP");
-                calcStack.pop();
-                popValueOnStackView();
+                popValue();
                 break;
 
             case R.id.ctl_btn_swap:
                 Log.d("Click action stack", "SWAP");
+                try {
+                    ArrayList<Integer> values = calcStack.swap();
+                    popValueOnStackView();
+                    popValueOnStackView();
+                    pushValueOnStackView(String.valueOf(values.get(0)));
+                    pushValueOnStackView(String.valueOf(values.get(1)));
+                } catch (Exception ex) {
+                    notify(ex.getMessage());
+                }
                 break;
 
             case R.id.ctl_btn_enter:
@@ -171,8 +174,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
                 String currentValue = getCurrentValue();
                 try {
                     int newValue = Integer.parseInt(currentValue);
-                    calcStack.Push(newValue);
-                    pushValueOnStackView(String.valueOf(newValue));
+                    pushValue(newValue);
                     setCurrentValue("");
                 } catch (NumberFormatException e) {
                     notify("Not a number !");
@@ -184,7 +186,20 @@ public class MainActivity extends Tracer implements View.OnClickListener {
         }
     }
 
+    //--- REGION STACK OPERATIONS
 
+    private Integer popValue() {
+        Integer value = calcStack.pop();
+        popValueOnStackView();
+        return value;
+    }
+
+    private void pushValue(Integer newValue) {
+        calcStack.push(newValue);
+        pushValueOnStackView(String.valueOf(newValue));
+    }
+
+    //--- REGION STACK VIEW
 
     private void pushValueOnStackView(String newValue) {
         TextView olderItem = null, newerItem = null;
@@ -220,5 +235,46 @@ public class MainActivity extends Tracer implements View.OnClickListener {
         Log.d("copy '", stackHiddenValue +"' txo "+ olderItem.getText());
         olderItem.setText(stackHiddenValue);
     }
-    
+
+
+    //--- REGION CURRENT VALUE
+
+    private void writeDigit(int digit) {
+        Log.d("Write digit", String.valueOf(digit));
+        String newValue = getCurrentValue();
+        if(newValue == "0")
+            newValue = ""+digit;
+        else
+            newValue += digit;
+        try {
+            int result = Integer.parseInt(newValue);
+            setCurrentValue(newValue);
+        } catch (NumberFormatException e) {
+            notify("Not a valid number !");
+        }
+    }
+
+    private void removeDigit() {
+        String newValue = getCurrentValue();
+        if(newValue.length() > 1)
+            newValue = newValue.substring(0, newValue.length()-1);
+        else
+            newValue = "0";
+        Log.d("Remove digit", "new value : '"+newValue+"'");
+        try {
+            int result = Integer.parseInt(newValue);
+            setCurrentValue(newValue);
+        } catch (NumberFormatException e) {
+            notify("Not a valid number !");
+        }
+    }
+
+    private String getCurrentValue() {
+        return ctl_txt_currentValue.getText().toString();
+    }
+
+    private void setCurrentValue(String newValue) {
+        ctl_txt_currentValue.setText(newValue);
+    }
+
 }

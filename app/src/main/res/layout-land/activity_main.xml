@@ -12,15 +12,29 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/ctl_txt_currentValue"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/darker_gray"
-            android:padding="10dp"
-            android:paddingBottom="20dp"
-            android:text="TextView"
-            android:textAppearance="@android:style/TextAppearance.Material.Large" />
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/ctl_btn_backspace"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray"
+                android:text="←" />
+
+            <TextView
+                android:id="@+id/ctl_txt_currentValue"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/darker_gray"
+                android:padding="10dp"
+                android:paddingBottom="20dp"
+                android:textAppearance="@android:style/TextAppearance.Material.Large" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
