@@ -1,15 +1,16 @@
 package com.example.admin.dta_android_tp10_calc;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridView;
-import android.widget.ListAdapter;
-import android.widget.TableLayout;
+import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import java.util.ArrayList;
+import java.util.Stack;
+
+public class MainActivity extends Tracer implements View.OnClickListener {
+
 
     int[] buttons =  new int[] {
             R.id.ctl_btn_1, 
@@ -30,17 +31,63 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             R.id.ctl_btn_enter
     };
 
+    private Stack<String> stackHiddenValues;
+    ArrayList<TextView> stackView;
+
+    private TextView ctl_txt_currentValue;
+    Stack<TextView> ctl_stackTextView;
+
+
+    private CalculatorStack calcStack;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        calcStack = new CalculatorStack();
+        ctl_txt_currentValue = (TextView) findViewById(R.id.ctl_txt_currentValue);
+
+        stackView = new ArrayList<TextView>();
+        stackView.add((TextView) findViewById(R.id.ctl_txt_stack1));
+        stackView.add((TextView) findViewById(R.id.ctl_txt_stack2));
+        stackView.add((TextView) findViewById(R.id.ctl_txt_stack3));
+        stackView.add((TextView) findViewById(R.id.ctl_txt_stack4));
+
+        stackHiddenValues = new Stack<String>();
+
+        // Attach main listener to buttons
         for (int buttonId : buttons)
         {
             Button ctl_btn = (Button) findViewById(buttonId);
             ctl_btn.setOnClickListener(this);
         }
+
+
     }
+
+    private void writeDigit(int digit) {
+        Log.d("Write digit", String.valueOf(digit));
+        String newValue = getCurrentValue() + digit;
+        try {
+            int result = Integer.parseInt(newValue);
+            setCurrentValue(newValue);
+        } catch (NumberFormatException e) {
+            notify("Not a valid number !");
+        }
+    }
+
+
+
+    private String getCurrentValue() {
+        return ctl_txt_currentValue.getText().toString();
+    }
+
+    private void setCurrentValue(String newValue) {
+        ctl_txt_currentValue.setText(newValue);
+    }
+
+
 
     @Override
     public void onClick(View v) {
@@ -48,43 +95,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
 
             case R.id.ctl_btn_1:
-                Log.d("Click digit", "1");
+                writeDigit(1);
                 break;
 
             case R.id.ctl_btn_2:
-                Log.d("Click digit", "2");
+                writeDigit(2);
                 break;
 
             case R.id.ctl_btn_3:
-                Log.d("Click digit", "3");
+                writeDigit(3);
                 break;
 
             case R.id.ctl_btn_4:
-                Log.d("Click digit", "4");
+                writeDigit(4);
                 break;
 
             case R.id.ctl_btn_5:
-                Log.d("Click digit", "5");
+                writeDigit(5);
                 break;
 
             case R.id.ctl_btn_6:
-                Log.d("Click digit", "6");
+                writeDigit(6);
                 break;
 
             case R.id.ctl_btn_7:
-                Log.d("Click digit", "7");
+                writeDigit(7);
                 break;
 
             case R.id.ctl_btn_8:
-                Log.d("Click digit", "8");
+                writeDigit(8);
                 break;
 
             case R.id.ctl_btn_9:
-                Log.d("Click digit", "9");
+                writeDigit(9);
                 break;
 
             case R.id.ctl_btn_plus:
                 Log.d("Click action math", "PLUS");
+                try {
+                    String result = calcStack.plus();
+                    popValueOnStackView();
+                    popValueOnStackView();
+                    pushValueOnStackView(result);
+                    setCurrentValue("");
+                }
+                catch(Exception ex) {
+                    notify(ex.getMessage());
+                }
                 break;
 
             case R.id.ctl_btn_minus:
@@ -101,6 +158,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.ctl_btn_pop:
                 Log.d("Click action stack", "POP");
+                calcStack.pop();
+                popValueOnStackView();
                 break;
 
             case R.id.ctl_btn_swap:
@@ -109,11 +168,57 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.ctl_btn_enter:
                 Log.d("Click action stack", "ENTER");
+                String currentValue = getCurrentValue();
+                try {
+                    int newValue = Integer.parseInt(currentValue);
+                    calcStack.Push(newValue);
+                    pushValueOnStackView(String.valueOf(newValue));
+                    setCurrentValue("");
+                } catch (NumberFormatException e) {
+                    notify("Not a number !");
+                }
                 break;
 
             default:
                 break;
         }
+    }
+
+
+
+    private void pushValueOnStackView(String newValue) {
+        TextView olderItem = null, newerItem = null;
+
+        olderItem = (TextView)stackView.get(stackView.size()-1);
+        stackHiddenValues.push(olderItem.getText().toString());
+        //stackHiddenValue = olderItem.getText().toString();
+
+        for(int i = stackView.size()-2; i >= 0; i--)
+        {
+            newerItem = (TextView) stackView.get(i);
+            Log.d("copy '", newerItem.getText()+"' in object #'"+ olderItem.getId()+"'");
+            olderItem.setText(newerItem.getText());
+            olderItem = newerItem;
+        }
+        Log.d("copy '", newValue +"' to "+ newerItem.getId());
+        newerItem.setText(newValue);
+    }
+
+    private void popValueOnStackView() {
+        TextView olderItem = null, newerItem = null;
+
+        newerItem = (TextView)stackView.get(0);
+        for(int i = 1; i < stackView.size(); i++)
+        {
+            olderItem = (TextView) stackView.get(i);
+            Log.d("copy '", olderItem.getText()+"' in object #'"+ newerItem.getText()+"'");
+            newerItem.setText(olderItem.getText());
+            newerItem = olderItem;
+        }
+
+        String stackHiddenValue = (stackHiddenValues.isEmpty()) ? "" : stackHiddenValues.pop();
+        Log.d("copy '", stackHiddenValue +"' txo "+ olderItem.getText());
+        olderItem.setText(stackHiddenValue);
     }
     
 }
