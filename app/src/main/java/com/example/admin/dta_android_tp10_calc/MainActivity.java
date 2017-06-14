@@ -63,11 +63,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
             Button ctl_btn = (Button) findViewById(buttonId);
             ctl_btn.setOnClickListener(this);
         }
-
-
     }
-
-
 
 
     @Override
@@ -149,11 +145,17 @@ public class MainActivity extends Tracer implements View.OnClickListener {
 
             case R.id.ctl_btn_clear:
                 Log.d("Click action stack", "CLEAR");
+                calcStack.clear();
+                clearOnStackView();
                 break;
 
             case R.id.ctl_btn_pop:
                 Log.d("Click action stack", "POP");
-                popValue();
+                try {
+                    popValue();
+                } catch (Exception ex) {
+                    notify(ex.getMessage());
+                }
                 break;
 
             case R.id.ctl_btn_swap:
@@ -188,7 +190,7 @@ public class MainActivity extends Tracer implements View.OnClickListener {
 
     //--- REGION STACK OPERATIONS
 
-    private Integer popValue() {
+    private Integer popValue() throws Exception {
         Integer value = calcStack.pop();
         popValueOnStackView();
         return value;
@@ -236,6 +238,17 @@ public class MainActivity extends Tracer implements View.OnClickListener {
         olderItem.setText(stackHiddenValue);
     }
 
+    private void clearOnStackView() {
+        TextView textItem;
+
+        stackHiddenValues.clear();
+        for(int i = 0; i < stackView.size(); i++)
+        {
+            textItem = (TextView) stackView.get(i);
+            textItem.setText("");
+        }
+    }
+
 
     //--- REGION CURRENT VALUE
 
@@ -270,10 +283,12 @@ public class MainActivity extends Tracer implements View.OnClickListener {
     }
 
     private String getCurrentValue() {
+
         return ctl_txt_currentValue.getText().toString();
     }
 
     private void setCurrentValue(String newValue) {
+
         ctl_txt_currentValue.setText(newValue);
     }
 

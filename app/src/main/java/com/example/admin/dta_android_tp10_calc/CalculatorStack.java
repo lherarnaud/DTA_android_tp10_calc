@@ -5,8 +5,8 @@ import java.util.Stack;
 
 /**
  * Created by admin on 14/06/2017.
+ * Contains the RPN Calculator (only business, UI is independent)
  */
-
 public class CalculatorStack {
 
     private Stack<Integer> stack;
@@ -16,15 +16,27 @@ public class CalculatorStack {
         stack = new Stack<Integer>();
     }
 
+
+    public void clear() {
+        stack.clear();
+    }
+
     public void push(Integer currentValue) {
 
         stack.push(currentValue);
     }
 
-    public Integer pop() {
-        if(stack.size() > 0)
-            return stack.pop();
-        return 0;
+    public Integer pop() throws Exception {
+        try {
+            if(stack.size() > 0) {
+                return stack.pop();
+            }
+            else
+                throw new Exception("Need at least 1 integer");
+        }
+        catch(Exception ex) {
+            throw ex;
+        }
     }
 
     public int size() {
@@ -113,7 +125,6 @@ public class CalculatorStack {
             return ((left ^ right) & (left ^ (left - right))) < 0;
         }
     }
-
 
 
 }
